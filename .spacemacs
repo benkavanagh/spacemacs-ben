@@ -110,21 +110,19 @@ values."
    ;;                    leuven
    ;;                    monokai
    ;;                    zenburn)
-
-   dotspacemacs-themes '(bkava-light
-                         solarized-light
+   ;;  
+   ;;      add bkava-light when ready.  use moe-light as first choice now
+   dotspacemacs-themes '(
                          moe-light
+                         solarized-light
                          meacupla
                          leuven
-
-
-  adwaita
+                         adwaita
                          mccarthy
                          professional
                          ritchie
                          sunny-day
                          soft-stone
-
                          tango)
 
    ;; If non nil the cursor color matches the state color in GUI Emacs.
@@ -264,336 +262,23 @@ values."
 It is called immediately after `dotspacemacs/init'.  You are free to put almost
 any user code here.  The exception is org related code, which should be placed
 in `dotspacemacs/user-config'."
-  ;; tell haskell-mode to use "stack ghci" to run interpreter
-  (setq haskell-process-type 'stack-ghci)
+  )
 
-  ;; experiment with these minor modes to see which I want to use
-  ;; 
-  (add-hook 'haskell-mode-hook 'haskell-doc-mode)
-  (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
-  ;; (add-hook 'haskell-mode-hook 'interactive-haskell-mode) This is added by default haskell layer
-  (add-hook 'haskell-mode-hook 'haskell-decl-scan-mode)
-  (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-
- )
 
 (defun dotspacemacs/user-config ()
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration. You are free to put any user code."
-  ;; This code was to fix evil-jumper (C-i) behaviour. I believe this was fixed with 
-  ;; change to distinguish-gui-tab  config param to be true.
-  ;; (require 'evil-jumper)
-  ;; (evil-jumper-mode t) 
-  ;; (setq evil-want-C-i-jump t)
-  ;; (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
-  ;; (global-set-key (kbd "H-i") 'evil-jump-forward)
 
-  ;; add pdflatex command to tex compile menu
-  (defcustom custom-TeX-command-list
-    ;; '(("pdflatex" "pdflatex '\\nonstopmode\\input{%t}'" TeX-run-LaTeX nil t))
-    nil
-    "Additional Tex commands")
-  ;; ok. now that this works, test with a latex mode hook
-  ;; (add-hook 'LaTeX-mode-hook
-  ;;           (lambda () ...
-  ;;                      (setq TeX-command-default "latexmk")
-  (eval-after-load "tex"
-    '(setq TeX-command-list
-           (append custom-TeX-command-list
-                   TeX-command-list)))
+  ;; add private/local/spacemacs-ben to load path
+  ;; (this shouldn't be necessary as spacemacs should add all subdirs of local to load-path)
+  (add-to-list 'load-path "~/.spacemacs.d/private/local/spacemacs-ben/")
+  (load "spacemacs-ben")  ;; turn this into require later. 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;; WIKI STUFF. muse, remember, planner
-  ;; muse stuff
+  ;; call my personal init code. 
+  (spacemacs-ben/init)
 
-  (require 'muse-mode)     ; load authoring mode
+  ;; load UI-based customizations, stored in spacemacs-ben
+  (setq custom-file "~/.spacemacs.d/private/local/spacemacs-ben/spacemacs-ben-custom.el")
+  (load custom-file))
 
-  (require 'muse-html)     ; load publishing styles I use
-  (require 'muse-latex)
-  (require 'muse-texinfo)
-  (require 'muse-docbook)
-  (require 'muse-blosxom)
-
-  (require 'muse-project)  ; publish files in projects
-
-  (setq muse-dir "~/archy/")
-  (defun in-muse-dir (suffix) (concat muse-dir suffix))
-
-  (setq muse-project-alist
-        ;; General Wiki (general knowledge base, mostly about stuff related to personal pursuits (sailing, yoga, etc)
-        `(("Wiki" (,@(muse-project-alist-dirs (in-muse-dir "wiki"))
-                   :default "IndexWiki")
-           ,@(muse-project-alist-styles (in-muse-dir "wiki")
-                                        "~/public_html/wiki"
-                                        "xhtml"))
-          ;; Research Wiki (pages about programming, logic, mathematics, etc)
-          ("Research" (,@(muse-project-alist-dirs (in-muse-dir "research"))
-                       :default "IndexResearch")
-           ,@(muse-project-alist-styles (in-muse-dir "research")
-                                        "~/public_html/research"
-                                        "html"))
-
-          ;; Bibliography. Perhaps I should just use citeulike or a built in citation manager. I think writing an 
-          ;; explicit manager would be better than this. but it works for now. 
-          ("Library" (,@(muse-project-alist-dirs (in-muse-dir "library"))
-                      :default "IndexLib")
-           ,@(muse-project-alist-styles (in-muse-dir "library")
-                                        "~/public_html/library"
-                                        "html"))
-
-          ;; Projects area. This is where I describe all of my projects in text. from here I move tasks to staging 
-          ;; area in work and personal.org. from there they go -> todo.org. I work from todo.org
-          ("Work" (,@(muse-project-alist-dirs (in-muse-dir "projects/work"))
-                   :default "IndexWork")
-           ,@(muse-project-alist-styles (in-muse-dir "projects/work")
-                                        "~/public_html/projects/work"
-                                        "html")
-           )
-
-          ;; Projects area. This is where I describe all of my projects in text. from here I move tasks to staging
-          ;; area in work and personal.org. from there they go -> todo.org. I work from todo.org
-          ("Life" (,@(muse-project-alist-dirs (in-muse-dir "projects/life"))
-                   :default "IndexLife")
-           ,@(muse-project-alist-styles (in-muse-dir "projects/life")
-                                        "~/public_html/projects/life"
-                                        "html")
-           )
-
-          ;; Log. This is where I put all of my daily notes, completed tasks, timelog. Important writing goes to Wiki or Research.
-          ("Log" (,@(muse-project-alist-dirs (in-muse-dir "logs"))
-                  :default "IndexLog")
-           ,@(muse-project-alist-styles (in-muse-dir "logs")
-                                        "~/public_html/logs"
-                                        "html"))))
-
-
-  (setq log-project "Log")
-
-  ;; remember. I should use capture from org-mode and move remember templates to org-capture templates.
-  (require 'remember)
-
-
-  ;; unused planner stuff.
-  ;; (global-set-key (kbd "<f9> t") 'planner-create-task-from-buffer)
-  ;; (global-set-key (kbd "<f9> r") 'remember)
-  ;; (global-set-key (kbd "<f9> g") 'planner-goto-today)
-
-
-
-  ;; this sets muse mode by file location.
-  (setq muse-file-extension nil
-        muse-mode-auto-p t)
-
-  ;;   I may need to add this if .emacs ever reads a muse file and requires it to be in musemode.
-  ;;
-  (add-hook 'find-file-hooks 'muse-mode-maybe)
-
-  ;;;; END MUSE
-
-  ;; modify browse-url to use chrome.
-  (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "google-chrome")
-
-  ;;; Agda stuff  (also some custom variables in variables section)
-
-  ;;  (load-file (let ((coding-system-for-read 'utf-8))
-  ;;             (shell-command-to-string "agda-mode locate")))
-
-  (custom-set-variables
-   '(agda-input-user-translations (quote (("swap" "⇆") ("nms" "𝔸") ("bool" "𝔹") ("_rho" "ᵨ") ("^e" "ᵉ") ("_beta" "ᵦ") ("_i" "ᵢ") ("_n" "ₙ"))))
-   '(agda2-include-dirs (quote ("." "/usr/local/share/agda-stdlib-0.11")))
-   '(auto-compression-mode t nil (jka-compr))
-   ;; '(case-fold-search t)
-   '(current-language-environment "UTF-8")
-   '(default-input-method "rfc1345")
-   '(display-time-mode t)
-   '(gds-search-url "http://127.0.0.1:39401/search?q=")
-   '(global-font-lock-mode t nil (font-lock))
-   '(org-agenda-custom-commands (quote (("c" todo "DONE|DEFERRED|CANCELLED" nil) ("w" todo "WAITING" nil) ("W" agenda "" ((org-agenda-ndays 21))) ("A" agenda "" ((org-agenda-skip-function (lambda nil (org-agenda-skip-entry-if (quote notregexp) "\\=.*\\[#A\\]"))) (org-agenda-ndays 1) (org-agenda-overriding-header "Today's Priority #A tasks: "))) ("u" alltodo "" ((org-agenda-skip-function (lambda nil (org-agenda-skip-entry-if (quote scheduled) (quote deadline) (quote regexp) "<[^>
-]+>"))) (org-agenda-overriding-header "Unscheduled TODO entries: "))))))
-   '(org-agenda-files (quote ("~/archy/org/main.org ~/writing/thesis/thesis.org")))
-   '(org-agenda-ndays 7)
-   '(org-agenda-show-all-dates t)
-   '(org-agenda-skip-deadline-if-done t)
-   '(org-agenda-skip-scheduled-if-done t)
-   '(org-agenda-start-on-weekday nil)
-   '(org-deadline-warning-days 14)
-   '(org-default-notes-file "~/archy/org/notes.org")
-   '(org-fast-tag-selection-single-key (quote expert))
-   '(org-remember-store-without-prompt t)
-   '(org-remember-templates (quote ((99 "** %U %?
-  %a
-  " "~/archy/org/calculo.org" "Notes") (108 "** %U %?" "~/archy/org/daily.org" "Timelog") (110 "** %u %?" "~/archy/org/notes.org" "Notes") (116 "* TODO %?
-  %u" "~/archy/org/todo.org" "Tasks"))))
-   '(org-reverse-note-order t)
-   '(quack-programs (quote ("mred " "bigloo" "csi" "csi -hygienic" "gosh" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "mred -z" "mzscheme" "mzscheme -M errortrace" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi")))
-   '(remember-annotation-functions (quote (org-remember-annotation)))
-   '(remember-handler-functions (quote (org-remember-handler)))
-   '(show-paren-mode t nil (paren))
-   '(tool-bar-mode nil))
-
-  ;;  Hmm .. I should really put this in bkava theme. 
-  (custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   '(highlight-numbers-number ((t (:inherit font-lock-constant-face :foreground "green4")))))
-
-)
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(agda-input-user-translations
-   (quote
-    (("swap" "⇆")
-     ("nms" "𝔸")
-     ("bool" "𝔹")
-     ("_rho" "ᵨ")
-     ("^e" "ᵉ")
-     ("_beta" "ᵦ")
-     ("_i" "ᵢ")
-     ("_n" "ₙ"))))
- '(agda2-include-dirs (quote ("." "/usr/local/share/agda-stdlib-0.11")))
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(auto-compression-mode t nil (jka-compr))
- '(compilation-message-face (quote default))
- '(cua-global-mark-cursor-color "#2aa198")
- '(cua-normal-cursor-color "#657b83")
- '(cua-overwrite-cursor-color "#b58900")
- '(cua-read-only-cursor-color "#859900")
- '(current-language-environment "UTF-8")
- '(default-input-method "rfc1345")
- '(display-time-mode t)
- '(fci-rule-color "#eee8d5" t)
- '(gds-search-url "http://127.0.0.1:39401/search?q=")
- '(global-font-lock-mode t nil (font-lock))
- '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
- '(highlight-symbol-colors
-   (--map
-    (solarized-color-blend it "#fdf6e3" 0.25)
-    (quote
-     ("#b58900" "#2aa198" "#dc322f" "#6c71c4" "#859900" "#cb4b16" "#268bd2"))))
- '(highlight-symbol-foreground-color "#586e75")
- '(highlight-tail-colors
-   (quote
-    (("#eee8d5" . 0)
-     ("#B4C342" . 20)
-     ("#69CABF" . 30)
-     ("#69B7F0" . 50)
-     ("#DEB542" . 60)
-     ("#F2804F" . 70)
-     ("#F771AC" . 85)
-     ("#eee8d5" . 100))))
- '(hl-bg-colors
-   (quote
-    ("#DEB542" "#F2804F" "#FF6E64" "#F771AC" "#9EA0E5" "#69B7F0" "#69CABF" "#B4C342")))
- '(hl-fg-colors
-   (quote
-    ("#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3" "#fdf6e3")))
- '(hl-sexp-background-color "#efebe9")
- '(magit-diff-use-overlays nil)
- '(nrepl-message-colors
-   (quote
-    ("#dc322f" "#cb4b16" "#b58900" "#546E00" "#B4C342" "#00629D" "#2aa198" "#d33682" "#6c71c4")))
- '(org-agenda-custom-commands
-   (quote
-    (("c" todo "DONE|DEFERRED|CANCELLED" nil)
-     ("w" todo "WAITING" nil)
-     ("W" agenda ""
-      ((org-agenda-ndays 21)))
-     ("A" agenda ""
-      ((org-agenda-skip-function
-        (lambda nil
-          (org-agenda-skip-entry-if
-           (quote notregexp)
-           "\\=.*\\[#A\\]")))
-       (org-agenda-ndays 1)
-       (org-agenda-overriding-header "Today's Priority #A tasks: ")))
-     ("u" alltodo ""
-      ((org-agenda-skip-function
-        (lambda nil
-          (org-agenda-skip-entry-if
-           (quote scheduled)
-           (quote deadline)
-           (quote regexp)
-           "<[^>
-]+>")))
-       (org-agenda-overriding-header "Unscheduled TODO entries: "))))))
- '(org-agenda-files
-   (quote
-    ("~/archy/org/main.org ~/writing/thesis/thesis.org")))
- '(org-agenda-ndays 7)
- '(org-agenda-show-all-dates t)
- '(org-agenda-skip-deadline-if-done t)
- '(org-agenda-skip-scheduled-if-done t)
- '(org-agenda-start-on-weekday nil)
- '(org-deadline-warning-days 14)
- '(org-default-notes-file "~/archy/org/notes.org")
- '(org-fast-tag-selection-single-key (quote expert))
- '(org-remember-store-without-prompt t)
- '(org-remember-templates
-   (quote
-    ((99 "** %U %?
-  %a
-  " "~/archy/org/calculo.org" "Notes")
-     (108 "** %U %?" "~/archy/org/daily.org" "Timelog")
-     (110 "** %u %?" "~/archy/org/notes.org" "Notes")
-     (116 "* TODO %?
-  %u" "~/archy/org/todo.org" "Tasks"))))
- '(org-reverse-note-order t)
- '(pos-tip-background-color "#eee8d5")
- '(pos-tip-foreground-color "#586e75")
- '(quack-programs
-   (quote
-    ("mred " "bigloo" "csi" "csi -hygienic" "gosh" "gsi" "gsi ~~/syntax-case.scm -" "guile" "kawa" "mit-scheme" "mred -z" "mzscheme" "mzscheme -M errortrace" "rs" "scheme" "scheme48" "scsh" "sisc" "stklos" "sxi")))
- '(remember-annotation-functions (quote (org-remember-annotation)))
- '(remember-handler-functions (quote (org-remember-handler)))
- '(show-paren-mode t nil (paren))
- '(smartrep-mode-line-active-bg (solarized-color-blend "#859900" "#eee8d5" 0.2))
- '(term-default-bg-color "#fdf6e3")
- '(term-default-fg-color "#657b83")
- '(tool-bar-mode nil)
- '(vc-annotate-background nil)
- '(vc-annotate-color-map
-   (quote
-    ((20 . "#dc322f")
-     (40 . "#c85d17")
-     (60 . "#be730b")
-     (80 . "#b58900")
-     (100 . "#a58e00")
-     (120 . "#9d9100")
-     (140 . "#959300")
-     (160 . "#8d9600")
-     (180 . "#859900")
-     (200 . "#669b32")
-     (220 . "#579d4c")
-     (240 . "#489e65")
-     (260 . "#399f7e")
-     (280 . "#2aa198")
-     (300 . "#2898af")
-     (320 . "#2793ba")
-     (340 . "#268fc6")
-     (360 . "#268bd2"))))
- '(vc-annotate-very-old-color nil)
- '(weechat-color-list
-   (quote
-    (unspecified "#fdf6e3" "#eee8d5" "#990A1B" "#dc322f" "#546E00" "#859900" "#7B6000" "#b58900" "#00629D" "#268bd2" "#93115C" "#d33682" "#00736F" "#2aa198" "#657b83" "#839496")))
- '(xterm-color-names
-   ["#eee8d5" "#dc322f" "#859900" "#b58900" "#268bd2" "#d33682" "#2aa198" "#073642"])
- '(xterm-color-names-bright
-   ["#fdf6e3" "#cb4b16" "#93a1a1" "#839496" "#657b83" "#6c71c4" "#586e75" "#002b36"]))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#fdfde7" :foreground "#5f5f5f" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "unknown" :family "InconsolataGG"))))
- '(company-tooltip-common ((t (:inherit company-tooltip :weight bold :underline nil))))
- '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :weight bold :underline nil))))
- '(highlight-numbers-number ((t (:inherit font-lock-constant-face :foreground "green4")))))
