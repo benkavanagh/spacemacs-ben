@@ -1,5 +1,10 @@
 ;;  Put all initialisation customizations here.
 ;;  modularize into functions. 
+
+(require `cl-lib)
+(require `record-type)
+
+
 (defun spacemacs-ben/global ()
   ;; fonts
   ;; this prob not necessary as font-lock is default
@@ -218,6 +223,62 @@
 
  ) 
 
+(defun spacemacs-ben/bibtex ()
+
+  (defrecord bibdata  "bibliography database"
+    :bibliography  'stringp     ;; maybe a list in future if necessary.
+    :pdf-dir       'stringp
+    :notes-path    'stringp)
+
+
+  ;; my god. can you believe that elisp makes it so complicated to have a local function????
+  ;; separate let for functions!  recursion.  not.  simple..    ugh
+  (cl-flet ((lookup (key alist) (cdr (assoc key alist))))
+    (let* ((bib-dir "~/bibliography/")
+           (bdb (make-new-bibdata :bibliography (concat bib-dir "references.bib")
+                                  :notes-path (concat bib-dir "bibnotes.org")
+                                  :pdf-dir "~/biblio-db/bibliography/")))
+      ;; Default bib for reftex
+      (setq reftex-default-bibliography (list (get-bibdata-bibliography bdb)))
+
+      ;;  set up default files/dirs for org-ref  (I guess these are used when using org-ref-helm... is that right?)
+      ;;  note that org-ref uses a list for bibliography files. hmm. is this a priority list or a sum? 
+      ;;  At the moment I only use a single central bib file.
+      ;;  In the future I may want to to use projectile to change notes file to a project specific
+      ;;  notes file. Project specific bib and pdf could also be useful, firstly for specialised
+      ;;  formatting of bibs, and secondly for access to project-specific annotated pdfs.
+
+      (setq org-ref-default-bibliography reftex-default-bibliography
+            org-ref-pdf-directory        (get-bibdata-pdf-dir bdb)
+            org-ref-bibliography-notes   (get-bibdata-notes-path bdb))
+
+      ;; (setq org-ref-open-pdf-function
+      ;;      (lambda (fpath) (start-process "zathura" "*helm-bibtex-zathura*" "/usr/bin/zathura" fpath))
+
+      (setq bibtex-completion-bibliography  (get-bibdata-bibliography bdb)
+            bibtex-completion-library-path  (get-bibdata-pdf-dir bdb)
+            bibtex-completion-notes-path    (get-bibdata-notes-path bdb))
+
+      ;; open pdf with system pdf viewer (thi is for mac)
+      ;; (setq bibtex-completion-pdf-open-function
+      ;;      (lambda (fpath)
+      ;;         (start-process "open" "*open*" "open" fpath)))
+      
+      ;; alternative. I believe this is the default. See bibtex-completion in bibtex-helm
+      ;; (setq bibtex-completion-pdf-open-function 'org-open-file)
+      
+      )
+    )
+  ;; helm-bibtex specific stuff
+  (setq bibtex-completion-pdf-field "file")
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (start-process "evince" "*helm-bibtex-evince*" "/usr/bin/evince" fpath)))
+  )
+
+(defun spacemacs-ben/bibtex-clean ()
+   (interactive)
+   (bibtex-map-entries (lambda (x y z) (org-ref-clean-bibtex-entry))))
 
 (defun spacemacs-ben/bkava-fix ()
   ;;  Hmm .. I should really put this in bkava theme. 
@@ -236,6 +297,7 @@
   (spacemacs-ben/tex)
   ;; emacs organisation/notes
   (spacemacs-ben/org)
+  (spacemacs-ben/bibtex)
   (spacemacs-ben/muse)
   (spacemacs-ben/plan-remember)
 
