@@ -162,8 +162,10 @@ values."
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
-   dotspacemacs-default-font '("Source Code Pro"
-                               :size 13
+   ;;  I am putting BOGUS font here because somehow it gets overridden and it is too damn
+   ;;  annoying. Fix at some point.
+   dotspacemacs-default-font '("InconsolataGGG"
+                               :size 14
                                :weight normal
                                :width normal
                                :powerline-scale 1.1)
